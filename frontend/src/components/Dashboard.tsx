@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { ContractTransactionResponse, formatUnits, parseUnits } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import { useTokenContract } from '../hooks/useTokenContract';
@@ -99,6 +99,51 @@ export function Dashboard() {
     return `Chain ID ${chainId}`;
   }, [chainId]);
 
+  const statusIndicators = useMemo(
+    () => {
+      const indicators: Array<{ id: string; label: string; value: string; tone: string }> = [];
+
+      if (!hasProvider) {
+        indicators.push({
+          id: 'wallet',
+          label: 'Wallet',
+          value: 'Browser wallet unavailable',
+          tone: 'muted',
+        });
+      } else {
+        indicators.push({
+          id: 'wallet',
+          label: 'Wallet',
+          value: account ? shortenAddress(account) : isConnecting ? 'Connecting…' : 'Not connected',
+          tone: account ? 'success' : isConnecting ? 'info' : 'warning',
+        });
+      }
+
+      indicators.push({
+        id: 'network',
+        label: 'Network',
+        value: networkLabel,
+        tone: !account ? 'muted' : isCorrectNetwork ? 'success' : 'error',
+      });
+
+      indicators.push({
+        id: 'status',
+        label: 'Status',
+        value: !hasProvider
+          ? 'Install a wallet to interact'
+          : canInteract
+          ? 'Ready to interact'
+          : account
+          ? 'Switch to Lisk Sepolia'
+          : 'Connect your wallet',
+        tone: !hasProvider ? 'muted' : canInteract ? 'success' : account ? 'warning' : 'info',
+      });
+
+      return indicators;
+    },
+    [hasProvider, account, isConnecting, networkLabel, isCorrectNetwork, canInteract]
+  );
+
   const refreshTokenData = useCallback(async () => {
     if (!tokenContract || !account || !isCorrectNetwork) {
       setTokenInfo(initialTokenInfo);
@@ -174,7 +219,7 @@ export function Dashboard() {
     void refreshNftData();
   }, [refreshNftData]);
 
-  const handleTransfer = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleTransfer = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setTokenMessage({ type: 'info', text: 'Submitting transfer…' });
 
@@ -237,7 +282,7 @@ export function Dashboard() {
   //   }
   // }, [provider, tokenContract, account, mintTo, mintAmount, tokenInfo.decimals, tokenInfo.owner, refreshTokenData]);
 
-  const handleMintNft = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleMintNft = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setNftMessage({ type: 'info', text: 'Submitting mint…' });
 
@@ -298,242 +343,287 @@ export function Dashboard() {
 
   return (
     <main className="app-container">
-      <header className="status-card">
-        <div className="status-meta">
-          <span className="status-eyebrow"></span>
-          <h1>Token & NFT Operations Hub</h1>
-          <p>Monitor key metrics and execute token or NFT actions on Lisk Sepolia in one place.</p>
-        </div>
-        <div className="status-actions">
-          <div className="status-summary">
-            <div className="status-row">
-              <span className="status-label">Wallet</span>
-              <span className="status-value">{shortenAddress(account)}</span>
-            </div>
-            <div className="status-row">
-              <span className="status-label">Network</span>
-              <span className="status-value">{networkLabel}</span>
-            </div>
-          </div>
-          <div className="status-buttons">
-            {!hasProvider ? (
-              <div className="status-alert">
-                <p>
-                  Configure <code>VITE_WALLETCONNECT_PROJECT_ID</code> to enable Web3Modal.
-                </p>
-              </div>
-            ) : (
-              <w3m-button balance="hide" size="md" label={isConnecting ? 'Connecting…' : undefined} />
-            )}
-            {account && !isCorrectNetwork && (
-              <button className="button warning" onClick={() => switchToLisk()}>
-                Switch to Lisk Sepolia
-              </button>
-            )}
+      <header className="hero-card">
+        <div className="hero-card__decor" aria-hidden="true" />
+        <div className="hero-card__info">
+          <span className="hero-tag">L-TOKEN</span>
+          <h1>Command your token &amp; NFT footprint</h1>
+          <p>Monitor live metrics and manage on-chain actions with a refined workspace.</p>
+          <div className="hero-card__badges">
+            {statusIndicators.map((indicator) => (
+              <span key={indicator.id} className={`status-pill status-pill--${indicator.tone}`}>
+                <span>{indicator.label}</span>
+                <strong>{indicator.value}</strong>
+              </span>
+            ))}
           </div>
         </div>
+        <aside className="hero-card__panel">
+          <div className="hero-card__panel-inner">
+            <div className="hero-card__panel-title">Connection</div>
+            <p className="hero-card__panel-text">
+              {isCorrectNetwork
+                ? 'Everything is aligned to transact on Lisk Sepolia.'
+                : 'Switch to Lisk Sepolia to unlock token and NFT actions.'}
+            </p>
+            <div className="hero-card__panel-actions">
+              {!hasProvider ? (
+                <div className="status-alert">
+                  <p>
+                    Configure <code>VITE_WALLETCONNECT_PROJECT_ID</code> to enable Web3Modal.
+                  </p>
+                </div>
+              ) : (
+                <w3m-button balance="hide" size="md" label={isConnecting ? 'Connecting…' : undefined} />
+              )}
+              {account && !isCorrectNetwork && (
+                <button className="button warning" onClick={() => switchToLisk()}>
+                  Switch to Lisk Sepolia
+                </button>
+              )}
+            </div>
+            <div className="hero-card__panel-footer">
+              <span>Explorer</span>
+              <a href={explorerBaseUrl} target="_blank" rel="noreferrer">
+                Open Lisk Dashboard 
+              </a>
+            </div>
+          </div>
+        </aside>
       </header>
 
-      <section className="overview-grid">
-        <article className="overview-card overview-card--token">
-          <header className="overview-header">
-            <span className="chip chip--token">{tokenInfo.symbol || 'LSEA'} • ERC-20</span>
-            <h2>{tokenInfo.name || 'LToken'}</h2>
-            <a
-              className="chip-link"
-              href={`${explorerBaseUrl}/address/${LTOKEN_ADDRESS}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View contract ↗
-            </a>
-          </header>
-          <dl className="stats-grid">
-            <div className="stat">
-              <dt>Total Supply</dt>
-              <dd>{tokenLoading ? 'Loading…' : `${tokenInfo.totalSupply} ${tokenInfo.symbol || ''}`}</dd>
-            </div>
-            <div className="stat">
-              <dt>Your Balance</dt>
-              <dd>{tokenLoading ? 'Loading…' : `${tokenBalance} ${tokenInfo.symbol || ''}`}</dd>
-            </div>
-            <div className="stat">
-              <dt>Decimals</dt>
-              <dd>{tokenInfo.decimals}</dd>
-            </div>
-            <div className="stat">
-              <dt>Owner</dt>
-              <dd>{tokenInfo.owner ? shortenAddress(tokenInfo.owner) : '—'}</dd>
-            </div>
-          </dl>
-        </article>
-
-        <article className="overview-card overview-card--nft">
-          <header className="overview-header">
-            <span className="chip chip--nft">{nftInfo.symbol || 'LNFT'} • ERC-721</span>
-            <h2>{nftInfo.name || 'LNFT'}</h2>
-            <a
-              className="chip-link"
-              href={`${explorerBaseUrl}/address/${LNFT_ADDRESS}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View contract ↗
-            </a>
-          </header>
-          <dl className="stats-grid">
-            <div className="stat">
-              <dt>Total Supply</dt>
-              <dd>{nftLoading ? 'Loading…' : nftInfo.totalSupply}</dd>
-            </div>
-            <div className="stat">
-              <dt>Your Holdings</dt>
-              <dd>{nftLoading ? 'Loading…' : nftOwned}</dd>
-            </div>
-            <div className="stat">
-              <dt>Owner</dt>
-              <dd>{nftInfo.owner ? shortenAddress(nftInfo.owner) : '—'}</dd>
-            </div>
-            <div className="stat">
-              <dt>Contract</dt>
-              <dd>
-                <a href={`${explorerBaseUrl}/address/${LNFT_ADDRESS}`} target="_blank" rel="noreferrer">
-                  {shortenAddress(LNFT_ADDRESS)}
+      <section className="section section--overview">
+        <div className="section-header">
+          <div>
+            <span className="section-eyebrow">Assets Overview</span>
+            <h2>Understand your supply and holdings</h2>
+          </div>
+          <p className="section-description">Live token and NFT metrics streaming from your deployed contracts.</p>
+        </div>
+        <div className="overview-grid">
+          <article className="overview-card overview-card--token">
+            <header className="overview-header">
+              <div className="overview-header__row">
+                <span className="chip chip--token">{tokenInfo.symbol || 'LSEA'} • ERC-20</span>
+                <a
+                  className="chip-link"
+                  href={`${explorerBaseUrl}/address/${LTOKEN_ADDRESS}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View contract
                 </a>
-              </dd>
-            </div>
-          </dl>
-        </article>
+              </div>
+              <h2>{tokenInfo.name || 'LToken'}</h2>
+              <p className="card-subtitle">Fungible supply details and your wallet balance.</p>
+            </header>
+            <dl className="stats-grid">
+              <div className="stat">
+                <dt>Total Supply</dt>
+                <dd>{tokenLoading ? 'Loading…' : `${tokenInfo.totalSupply} ${tokenInfo.symbol || ''}`}</dd>
+              </div>
+              <div className="stat">
+                <dt>Your Balance</dt>
+                <dd>{tokenLoading ? 'Loading…' : `${tokenBalance} ${tokenInfo.symbol || ''}`}</dd>
+              </div>
+              <div className="stat">
+                <dt>Decimals</dt>
+                <dd>{tokenInfo.decimals}</dd>
+              </div>
+              <div className="stat">
+                <dt>Owner</dt>
+                <dd>{tokenInfo.owner ? shortenAddress(tokenInfo.owner) : '—'}</dd>
+              </div>
+            </dl>
+          </article>
+
+          <article className="overview-card overview-card--nft">
+            <header className="overview-header">
+              <div className="overview-header__row">
+                <span className="chip chip--nft">{nftInfo.symbol || 'LNFT'} • ERC-721</span>
+                <a
+                  className="chip-link"
+                  href={`${explorerBaseUrl}/address/${LNFT_ADDRESS}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View contract
+                </a>
+              </div>
+              <h2>{nftInfo.name || 'LNFT'}</h2>
+              <p className="card-subtitle">Track minted collectibles and holdings tied to your wallet.</p>
+            </header>
+            <dl className="stats-grid">
+              <div className="stat">
+                <dt>Total Supply</dt>
+                <dd>{nftLoading ? 'Loading…' : nftInfo.totalSupply}</dd>
+              </div>
+              <div className="stat">
+                <dt>Your Holdings</dt>
+                <dd>{nftLoading ? 'Loading…' : nftOwned}</dd>
+              </div>
+              <div className="stat">
+                <dt>Owner</dt>
+                <dd>{nftInfo.owner ? shortenAddress(nftInfo.owner) : '—'}</dd>
+              </div>
+              <div className="stat">
+                <dt>Contract</dt>
+                <dd>
+                  <a href={`${explorerBaseUrl}/address/${LNFT_ADDRESS}`} target="_blank" rel="noreferrer">
+                    {shortenAddress(LNFT_ADDRESS)}
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          </article>
+        </div>
       </section>
 
-      <section className="action-grid">
-        <article className="action-card action-card--token">
-          <header className="action-header">
-            <div>
-              <span className="chip chip--token">Token Controls</span>
-              <h3>ERC-20 Operations</h3>
-            </div>
-            <p>Transfer LSEA seamlessly or run owner mints when connected to the correct network.</p>
-          </header>
-          <div className="form-grid">
-            <form className="form form--accent" onSubmit={handleTransfer}>
-              <h4>Transfer Tokens</h4>
-              <label>
-                Recipient Address
-                <input
-                  type="text"
-                  value={transferTo}
-                  onChange={(event) => setTransferTo(event.target.value)}
-                  placeholder="0x..."
-                  disabled={!canInteract}
-                  required
-                />
-              </label>
-              <label>
-                Amount ({tokenInfo.symbol || 'LSEA'})
-                <input
-                  type="text"
-                  value={transferAmount}
-                  onChange={(event) => setTransferAmount(event.target.value)}
-                  placeholder="0.0"
-                  disabled={!canInteract}
-                  required
-                />
-              </label>
-              <button className="button primary" type="submit" disabled={!canInteract}>
-                Send Tokens
-              </button>
-            </form>
-
-            {/* <form className="form form--outline" onSubmit={handleMintToken}>
-              <h4>Mint Tokens (Owner)</h4>
-              <label>
-                Recipient Address
-                <input
-                  type="text"
-                  value={mintTo}
-                  onChange={(event) => setMintTo(event.target.value)}
-                  placeholder="Defaults to your wallet"
-                  disabled={!canInteract}
-                />
-              </label>
-              <label>
-                Amount ({tokenInfo.symbol || 'LSEA'})
-                <input
-                  type="text"
-                  value={mintAmount}
-                  onChange={(event) => setMintAmount(event.target.value)}
-                  placeholder="0.0"
-                  disabled={!canInteract}
-                  required
-                />
-              </label>
-              <button className="button secondary" type="submit" disabled={!canInteract}>
-                Mint Tokens
-              </button>
-            </form> */}
+      <section className="section section--actions">
+        <div className="section-header">
+          <div>
+            <span className="section-eyebrow">Actions</span>
+            <h2>Execute on-chain operations</h2>
           </div>
-          {tokenMessage && <p className={`message ${tokenMessage.type}`}>{tokenMessage.text}</p>}
-        </article>
+          <p className="section-description">
+            Transfer tokens or mint NFTs with contextual feedback and guardrails.
+          </p>
+        </div>
+        <div className="action-grid">
+          <article className="action-card action-card--token">
+            <header className="action-header">
+              <div>
+                <span className="chip chip--token">Token Controls</span>
+                <h3>ERC-20 Operations</h3>
+              </div>
+              <p className="card-subtitle">Transfer LSEA seamlessly or run owner mints when connected.</p>
+            </header>
+            <div className="form-grid">
+              <form className="form form--accent" onSubmit={handleTransfer}>
+                <h4>Transfer Tokens</h4>
+                <label>
+                  Recipient Address
+                  <input
+                    type="text"
+                    value={transferTo}
+                    onChange={(event) => setTransferTo(event.target.value)}
+                    placeholder="0x..."
+                    disabled={!canInteract}
+                    required
+                  />
+                </label>
+                <label>
+                  Amount ({tokenInfo.symbol || 'LSEA'})
+                  <input
+                    type="text"
+                    value={transferAmount}
+                    onChange={(event) => setTransferAmount(event.target.value)}
+                    placeholder="0.0"
+                    disabled={!canInteract}
+                    required
+                  />
+                </label>
+                <button className="button primary" type="submit" disabled={!canInteract}>
+                  Send Tokens
+                </button>
+                {!canInteract && (
+                  <p className="form-hint">Connect your wallet and select Lisk Sepolia to enable this form.</p>
+                )}
+              </form>
 
-        <article className="action-card action-card--nft">
-          <header className="action-header">
-            <div>
-              <span className="chip chip--nft">NFT Controls</span>
-              <h3>ERC-721 Operations</h3>
+              {/* <form className="form form--outline" onSubmit={handleMintToken}>
+                <h4>Mint Tokens (Owner)</h4>
+                <label>
+                  Recipient Address
+                  <input
+                    type="text"
+                    value={mintTo}
+                    onChange={(event) => setMintTo(event.target.value)}
+                    placeholder="Defaults to your wallet"
+                    disabled={!canInteract}
+                  />
+                </label>
+                <label>
+                  Amount ({tokenInfo.symbol || 'LSEA'})
+                  <input
+                    type="text"
+                    value={mintAmount}
+                    onChange={(event) => setMintAmount(event.target.value)}
+                    placeholder="0.0"
+                    disabled={!canInteract}
+                    required
+                  />
+                </label>
+                <button className="button secondary" type="submit" disabled={!canInteract}>
+                  Mint Tokens
+                </button>
+              </form> */}
             </div>
-            <p>Mint NFTs directly to your wallet or safely airdrop to collectors with metadata URIs.</p>
-          </header>
-          <div className="form-grid">
-            <form className="form form--accent" onSubmit={handleMintNft}>
-              <h4>Public Mint</h4>
-              <label>
-                Metadata URI
-                <input
-                  type="text"
-                  value={mintUri}
-                  onChange={(event) => setMintUri(event.target.value)}
-                  placeholder="ipfs://..."
-                  disabled={!canInteract}
-                  required
-                />
-              </label>
-              <button className="button primary" type="submit" disabled={!canInteract}>
-                Mint to Wallet
-              </button>
-            </form>
+            {tokenMessage && <p className={`message ${tokenMessage.type}`}>{tokenMessage.text}</p>}
+          </article>
 
-            {/* <form className="form form--outline" onSubmit={handleSafeMint}>
-              <h4>Safe Mint (Owner)</h4>
-              <label>
-                Recipient Address
-                <input
-                  type="text"
-                  value={safeMintTo}
-                  onChange={(event) => setSafeMintTo(event.target.value)}
-                  placeholder="0x..."
-                  disabled={!canInteract}
-                  required
-                />
-              </label>
-              <label>
-                Metadata URI
-                <input
-                  type="text"
-                  value={safeMintUri}
-                  onChange={(event) => setSafeMintUri(event.target.value)}
-                  placeholder="ipfs://..."
-                  disabled={!canInteract}
-                  required
-                />
-              </label>
-              <button className="button secondary" type="submit" disabled={!canInteract}>
-                Safe Mint NFT
-              </button>
-            </form> */}
-          </div>
-          {nftMessage && <p className={`message ${nftMessage.type}`}>{nftMessage.text}</p>}
-        </article>
+          <article className="action-card action-card--nft">
+            <header className="action-header">
+              <div>
+                <span className="chip chip--nft">NFT Controls</span>
+                <h3>ERC-721 Operations</h3>
+              </div>
+              <p className="card-subtitle">Mint NFTs directly to your wallet with curated metadata.</p>
+            </header>
+            <div className="form-grid">
+              <form className="form form--accent" onSubmit={handleMintNft}>
+                <h4>Public Mint</h4>
+                <label>
+                  Metadata URI
+                  <input
+                    type="text"
+                    value={mintUri}
+                    onChange={(event) => setMintUri(event.target.value)}
+                    placeholder="ipfs://..."
+                    disabled={!canInteract}
+                    required
+                  />
+                </label>
+                <button className="button primary" type="submit" disabled={!canInteract}>
+                  Mint to Wallet
+                </button>
+                {!canInteract && (
+                  <p className="form-hint">Connect your wallet and select Lisk Sepolia to enable this form.</p>
+                )}
+              </form>
+
+              {/* <form className="form form--outline" onSubmit={handleSafeMint}>
+                <h4>Safe Mint (Owner)</h4>
+                <label>
+                  Recipient Address
+                  <input
+                    type="text"
+                    value={safeMintTo}
+                    onChange={(event) => setSafeMintTo(event.target.value)}
+                    placeholder="0x..."
+                    disabled={!canInteract}
+                    required
+                  />
+                </label>
+                <label>
+                  Metadata URI
+                  <input
+                    type="text"
+                    value={safeMintUri}
+                    onChange={(event) => setSafeMintUri(event.target.value)}
+                    placeholder="ipfs://..."
+                    disabled={!canInteract}
+                    required
+                  />
+                </label>
+                <button className="button secondary" type="submit" disabled={!canInteract}>
+                  Safe Mint NFT
+                </button>
+              </form> */}
+            </div>
+            {nftMessage && <p className={`message ${nftMessage.type}`}>{nftMessage.text}</p>}
+          </article>
+        </div>
       </section>
     </main>
   );
