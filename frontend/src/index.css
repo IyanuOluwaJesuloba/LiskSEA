@@ -1,5 +1,6 @@
 :root {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: clamp(15px, 0.9vw + 11px, 16px);
   line-height: 1.6;
   font-weight: 400;
   color: #e2e8f0;
