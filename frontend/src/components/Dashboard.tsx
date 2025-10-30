@@ -79,16 +79,16 @@ export function Dashboard() {
 
   const [transferTo, setTransferTo] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
-  const [mintTo, setMintTo] = useState('');
-  const [mintAmount, setMintAmount] = useState('');
+  // const [mintTo, setMintTo] = useState('');
+  // const [mintAmount, setMintAmount] = useState('');
 
   const [nftInfo, setNftInfo] = useState<NftInfo>(initialNftInfo);
   const [nftOwned, setNftOwned] = useState('0');
   const [nftLoading, setNftLoading] = useState(false);
   const [nftMessage, setNftMessage] = useState<MessageState | null>(null);
   const [mintUri, setMintUri] = useState('');
-  const [safeMintTo, setSafeMintTo] = useState('');
-  const [safeMintUri, setSafeMintUri] = useState('');
+  // const [safeMintTo, setSafeMintTo] = useState('');
+  // const [safeMintUri, setSafeMintUri] = useState('');
 
   const isWalletReady = Boolean(provider && account);
   const canInteract = isWalletReady && isCorrectNetwork;
@@ -203,39 +203,39 @@ export function Dashboard() {
     }
   }, [provider, tokenContract, account, transferTo, transferAmount, tokenInfo.decimals, refreshTokenData]);
 
-  const handleMintToken = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setTokenMessage({ type: 'info', text: 'Submitting mint…' });
+  // const handleMintToken = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+  //   event.preventDefault();
+  //   setTokenMessage({ type: 'info', text: 'Submitting mint…' });
 
-    if (!provider || !tokenContract || !account) {
-      setTokenMessage({ type: 'error', text: 'Wallet not connected' });
-      return;
-    }
-    if (!mintAmount) {
-      setTokenMessage({ type: 'error', text: 'Amount is required' });
-      return;
-    }
-    if (tokenInfo.owner && tokenInfo.owner !== account.toLowerCase()) {
-      setTokenMessage({ type: 'error', text: 'Only the contract owner can mint tokens' });
-      return;
-    }
+  //   if (!provider || !tokenContract || !account) {
+  //     setTokenMessage({ type: 'error', text: 'Wallet not connected' });
+  //     return;
+  //   }
+  //   if (!mintAmount) {
+  //     setTokenMessage({ type: 'error', text: 'Amount is required' });
+  //     return;
+  //   }
+  //   if (tokenInfo.owner && tokenInfo.owner !== account.toLowerCase()) {
+  //     setTokenMessage({ type: 'error', text: 'Only the contract owner can mint tokens' });
+  //     return;
+  //   }
 
-    try {
-      const recipient = mintTo || account;
-      const signer = await provider.getSigner();
-      const contractWithSigner = tokenContract.connect(signer);
-      const amount = parseUnits(mintAmount, tokenInfo.decimals);
-      const mint = contractWithSigner.getFunction('mint');
-      const tx = await mint(recipient, amount);
-      await waitForTx(tx);
-      setTokenMessage({ type: 'success', text: 'Mint successful' });
-      setMintTo('');
-      setMintAmount('');
-      await refreshTokenData();
-    } catch (error) {
-      setTokenMessage({ type: 'error', text: getErrorMessage(error) });
-    }
-  }, [provider, tokenContract, account, mintTo, mintAmount, tokenInfo.decimals, tokenInfo.owner, refreshTokenData]);
+  //   try {
+  //     const recipient = mintTo || account;
+  //     const signer = await provider.getSigner();
+  //     const contractWithSigner = tokenContract.connect(signer);
+  //     const amount = parseUnits(mintAmount, tokenInfo.decimals);
+  //     const mint = contractWithSigner.getFunction('mint');
+  //     const tx = await mint(recipient, amount);
+  //     await waitForTx(tx);
+  //     setTokenMessage({ type: 'success', text: 'Mint successful' });
+  //     setMintTo('');
+  //     setMintAmount('');
+  //     await refreshTokenData();
+  //   } catch (error) {
+  //     setTokenMessage({ type: 'error', text: getErrorMessage(error) });
+  //   }
+  // }, [provider, tokenContract, account, mintTo, mintAmount, tokenInfo.decimals, tokenInfo.owner, refreshTokenData]);
 
   const handleMintNft = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -264,37 +264,37 @@ export function Dashboard() {
     }
   }, [provider, nftContract, account, mintUri, refreshNftData]);
 
-  const handleSafeMint = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setNftMessage({ type: 'info', text: 'Submitting safe mint…' });
+  // const handleSafeMint = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+  //   event.preventDefault();
+  //   setNftMessage({ type: 'info', text: 'Submitting safe mint…' });
 
-    if (!provider || !nftContract || !account) {
-      setNftMessage({ type: 'error', text: 'Wallet not connected' });
-      return;
-    }
-    if (nftInfo.owner && nftInfo.owner !== account.toLowerCase()) {
-      setNftMessage({ type: 'error', text: 'Only the contract owner can call safeMint' });
-      return;
-    }
-    if (!safeMintTo || !safeMintUri) {
-      setNftMessage({ type: 'error', text: 'Recipient and metadata URI are required' });
-      return;
-    }
+  //   if (!provider || !nftContract || !account) {
+  //     setNftMessage({ type: 'error', text: 'Wallet not connected' });
+  //     return;
+  //   }
+  //   if (nftInfo.owner && nftInfo.owner !== account.toLowerCase()) {
+  //     setNftMessage({ type: 'error', text: 'Only the contract owner can call safeMint' });
+  //     return;
+  //   }
+  //   if (!safeMintTo || !safeMintUri) {
+  //     setNftMessage({ type: 'error', text: 'Recipient and metadata URI are required' });
+  //     return;
+  //   }
 
-    try {
-      const signer = await provider.getSigner();
-      const contractWithSigner = nftContract.connect(signer);
-      const safeMint = contractWithSigner.getFunction('safeMint');
-      const tx = await safeMint(safeMintTo, safeMintUri);
-      await waitForTx(tx);
-      setNftMessage({ type: 'success', text: 'NFT minted to recipient' });
-      setSafeMintTo('');
-      setSafeMintUri('');
-      await refreshNftData();
-    } catch (error) {
-      setNftMessage({ type: 'error', text: getErrorMessage(error) });
-    }
-  }, [provider, nftContract, account, nftInfo.owner, safeMintTo, safeMintUri, refreshNftData]);
+  //   try {
+  //     const signer = await provider.getSigner();
+  //     const contractWithSigner = nftContract.connect(signer);
+  //     const safeMint = contractWithSigner.getFunction('safeMint');
+  //     const tx = await safeMint(safeMintTo, safeMintUri);
+  //     await waitForTx(tx);
+  //     setNftMessage({ type: 'success', text: 'NFT minted to recipient' });
+  //     setSafeMintTo('');
+  //     setSafeMintUri('');
+  //     await refreshNftData();
+  //   } catch (error) {
+  //     setNftMessage({ type: 'error', text: getErrorMessage(error) });
+  //   }
+  // }, [provider, nftContract, account, nftInfo.owner, safeMintTo, safeMintUri, refreshNftData]);
 
   return (
     <main className="app-container">
