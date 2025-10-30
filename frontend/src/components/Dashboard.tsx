@@ -1,4 +1,5 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
 import { ContractTransactionResponse, formatUnits, parseUnits } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import { useTokenContract } from '../hooks/useTokenContract';
