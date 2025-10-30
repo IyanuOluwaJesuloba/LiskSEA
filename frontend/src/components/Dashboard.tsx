@@ -486,7 +486,7 @@ export function Dashboard() {
             <h2>Execute on-chain operations</h2>
           </div>
           <p className="section-description">
-            Transfer tokens or mint NFTs with contextual feedback and guardrails.
+            Transfer tokens or mint NFTs.
           </p>
         </div>
         <div className="action-grid">
@@ -496,7 +496,7 @@ export function Dashboard() {
                 <span className="chip chip--token">Token Controls</span>
                 <h3>ERC-20 Operations</h3>
               </div>
-              <p className="card-subtitle">Transfer LSEA seamlessly or run owner mints when connected.</p>
+              <p className="card-subtitle">Transfer LSEA seamlessly.</p>
             </header>
             <div className="form-grid">
               <form className="form form--accent" onSubmit={handleTransfer}>
