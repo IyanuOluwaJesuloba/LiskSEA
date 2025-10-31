@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { ContractTransactionResponse, formatUnits, parseUnits } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import { useTokenContract } from '../hooks/useTokenContract';
@@ -80,16 +81,12 @@ export function Dashboard() {
 
   const [transferTo, setTransferTo] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
-  // const [mintTo, setMintTo] = useState('');
-  // const [mintAmount, setMintAmount] = useState('');
 
   const [nftInfo, setNftInfo] = useState<NftInfo>(initialNftInfo);
   const [nftOwned, setNftOwned] = useState('0');
   const [nftLoading, setNftLoading] = useState(false);
   const [nftMessage, setNftMessage] = useState<MessageState | null>(null);
   const [mintUri, setMintUri] = useState('');
-  // const [safeMintTo, setSafeMintTo] = useState('');
-  // const [safeMintUri, setSafeMintUri] = useState('');
 
   const isWalletReady = Boolean(provider && account);
   const canInteract = isWalletReady && isCorrectNetwork;
@@ -249,40 +246,6 @@ export function Dashboard() {
     }
   }, [provider, tokenContract, account, transferTo, transferAmount, tokenInfo.decimals, refreshTokenData]);
 
-  // const handleMintToken = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
-  //   event.preventDefault();
-  //   setTokenMessage({ type: 'info', text: 'Submitting mint…' });
-
-  //   if (!provider || !tokenContract || !account) {
-  //     setTokenMessage({ type: 'error', text: 'Wallet not connected' });
-  //     return;
-  //   }
-  //   if (!mintAmount) {
-  //     setTokenMessage({ type: 'error', text: 'Amount is required' });
-  //     return;
-  //   }
-  //   if (tokenInfo.owner && tokenInfo.owner !== account.toLowerCase()) {
-  //     setTokenMessage({ type: 'error', text: 'Only the contract owner can mint tokens' });
-  //     return;
-  //   }
-
-  //   try {
-  //     const recipient = mintTo || account;
-  //     const signer = await provider.getSigner();
-  //     const contractWithSigner = tokenContract.connect(signer);
-  //     const amount = parseUnits(mintAmount, tokenInfo.decimals);
-  //     const mint = contractWithSigner.getFunction('mint');
-  //     const tx = await mint(recipient, amount);
-  //     await waitForTx(tx);
-  //     setTokenMessage({ type: 'success', text: 'Mint successful' });
-  //     setMintTo('');
-  //     setMintAmount('');
-  //     await refreshTokenData();
-  //   } catch (error) {
-  //     setTokenMessage({ type: 'error', text: getErrorMessage(error) });
-  //   }
-  // }, [provider, tokenContract, account, mintTo, mintAmount, tokenInfo.decimals, tokenInfo.owner, refreshTokenData]);
-
   const handleMintNft = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setNftMessage({ type: 'info', text: 'Submitting mint…' });
@@ -309,38 +272,6 @@ export function Dashboard() {
       setNftMessage({ type: 'error', text: getErrorMessage(error) });
     }
   }, [provider, nftContract, account, mintUri, refreshNftData]);
-
-  // const handleSafeMint = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
-  //   event.preventDefault();
-  //   setNftMessage({ type: 'info', text: 'Submitting safe mint…' });
-
-  //   if (!provider || !nftContract || !account) {
-  //     setNftMessage({ type: 'error', text: 'Wallet not connected' });
-  //     return;
-  //   }
-  //   if (nftInfo.owner && nftInfo.owner !== account.toLowerCase()) {
-  //     setNftMessage({ type: 'error', text: 'Only the contract owner can call safeMint' });
-  //     return;
-  //   }
-  //   if (!safeMintTo || !safeMintUri) {
-  //     setNftMessage({ type: 'error', text: 'Recipient and metadata URI are required' });
-  //     return;
-  //   }
-
-  //   try {
-  //     const signer = await provider.getSigner();
-  //     const contractWithSigner = nftContract.connect(signer);
-  //     const safeMint = contractWithSigner.getFunction('safeMint');
-  //     const tx = await safeMint(safeMintTo, safeMintUri);
-  //     await waitForTx(tx);
-  //     setNftMessage({ type: 'success', text: 'NFT minted to recipient' });
-  //     setSafeMintTo('');
-  //     setSafeMintUri('');
-  //     await refreshNftData();
-  //   } catch (error) {
-  //     setNftMessage({ type: 'error', text: getErrorMessage(error) });
-  //   }
-  // }, [provider, nftContract, account, nftInfo.owner, safeMintTo, safeMintUri, refreshNftData]);
 
   return (
     <main className="app-container">
@@ -386,7 +317,7 @@ export function Dashboard() {
             <div className="hero-card__panel-footer">
               <span>Explorer</span>
               <a href={explorerBaseUrl} target="_blank" rel="noreferrer">
-                Open Lisk Dashboard 
+                Open Lisk Dashboard
               </a>
             </div>
           </div>
@@ -486,9 +417,7 @@ export function Dashboard() {
             <span className="section-eyebrow">Actions</span>
             <h2>Execute on-chain operations</h2>
           </div>
-          <p className="section-description">
-            Transfer tokens or mint NFTs.
-          </p>
+          <p className="section-description">Transfer tokens or mint NFTs.</p>
         </div>
         <div className="action-grid">
           <article className="action-card action-card--token">
@@ -531,34 +460,6 @@ export function Dashboard() {
                   <p className="form-hint">Connect your wallet and select Lisk Sepolia to enable this form.</p>
                 )}
               </form>
-
-              {/* <form className="form form--outline" onSubmit={handleMintToken}>
-                <h4>Mint Tokens (Owner)</h4>
-                <label>
-                  Recipient Address
-                  <input
-                    type="text"
-                    value={mintTo}
-                    onChange={(event) => setMintTo(event.target.value)}
-                    placeholder="Defaults to your wallet"
-                    disabled={!canInteract}
-                  />
-                </label>
-                <label>
-                  Amount ({tokenInfo.symbol || 'LSEA'})
-                  <input
-                    type="text"
-                    value={mintAmount}
-                    onChange={(event) => setMintAmount(event.target.value)}
-                    placeholder="0.0"
-                    disabled={!canInteract}
-                    required
-                  />
-                </label>
-                <button className="button secondary" type="submit" disabled={!canInteract}>
-                  Mint Tokens
-                </button>
-              </form> */}
             </div>
             {tokenMessage && <p className={`message ${tokenMessage.type}`}>{tokenMessage.text}</p>}
           </article>
@@ -592,38 +493,32 @@ export function Dashboard() {
                   <p className="form-hint">Connect your wallet and select Lisk Sepolia to enable this form.</p>
                 )}
               </form>
-
-              {/* <form className="form form--outline" onSubmit={handleSafeMint}>
-                <h4>Safe Mint (Owner)</h4>
-                <label>
-                  Recipient Address
-                  <input
-                    type="text"
-                    value={safeMintTo}
-                    onChange={(event) => setSafeMintTo(event.target.value)}
-                    placeholder="0x..."
-                    disabled={!canInteract}
-                    required
-                  />
-                </label>
-                <label>
-                  Metadata URI
-                  <input
-                    type="text"
-                    value={safeMintUri}
-                    onChange={(event) => setSafeMintUri(event.target.value)}
-                    placeholder="ipfs://..."
-                    disabled={!canInteract}
-                    required
-                  />
-                </label>
-                <button className="button secondary" type="submit" disabled={!canInteract}>
-                  Safe Mint NFT
-                </button>
-              </form> */}
             </div>
             {nftMessage && <p className={`message ${nftMessage.type}`}>{nftMessage.text}</p>}
           </article>
+        </div>
+      </section>
+
+      <section className="section section--activity-link">
+        <div className="section-header">
+          <div>
+            <span className="section-eyebrow">History</span>
+            <h2>Inspect indexed activity</h2>
+          </div>
+          <p className="section-description">
+            Browse the dedicated activity feed page to review indexed transfers and transactions with filtering
+            and pagination.
+          </p>
+        </div>
+
+        <div className="activity-link-card">
+          <div>
+            <h3>Events &amp; Transactions</h3>
+            <p>Review ERC-20 and ERC-721 contract activity sourced from Lisk Sepolia.</p>
+          </div>
+          <Link className="button secondary" to="/activity">
+            Open activity page
+          </Link>
         </div>
       </section>
     </main>
