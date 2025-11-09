@@ -43,3 +43,8 @@ export const LNFT_ABI = [
   'function mint(string uri)',
   'function safeMint(address to, string uri)'
 ] as const;
+
+export const CHAIN_CONFIG = {
+  priceConsumerAddress: '0x7290293f45f6af9eae340ea87F5A1bf09C9217ba', // Replace with your deployed PriceConsumer address
+  gaslessInteractionAddress: import.meta.env.VITE_GASLESS_INTERACTION_ADDRESS || '', // GaslessInteraction contract
+};

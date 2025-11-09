@@ -1,0 +1,3 @@
+[submodule "contract/lib/redstone-oracles-monorepo"]
+	path = contract/lib/redstone-oracles-monorepo
+	url = https://github.com/redstone-finance/redstone-oracles-monorepo
