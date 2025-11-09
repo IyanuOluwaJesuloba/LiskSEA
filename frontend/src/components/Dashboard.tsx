@@ -519,7 +519,6 @@ export function Dashboard() {
           <Link className="button secondary" to="/activity">
             Open activity page
           </Link>
-<<<<<<< HEAD
           <Link 
             to="/prices" 
             className="button secondary">
@@ -530,8 +529,6 @@ export function Dashboard() {
             className="button secondary">
             Gasless Transactions
           </Link>
-=======
->>>>>>> 73b81d5f1ff6ebe5faee8d960a30e4624410631b
         </div>
       </section>
     </main>
