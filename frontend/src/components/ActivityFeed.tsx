@@ -344,6 +344,7 @@ export function ActivityFeed() {
   );
 
   const latestEntry = useMemo(() => (entries.length > 0 ? entries[0] : undefined), [entries]);
+<<<<<<< HEAD
   const resultCountLabel = `${entries.length} result${entries.length === 1 ? '' : 's'}`;
   const currentResultsLabel = loading ? 'Loading…' : emptyState ? 'No results' : resultCountLabel;
   const footerSummary = loading
@@ -351,6 +352,13 @@ export function ActivityFeed() {
     : emptyState
       ? `Page ${page} • No results`
       : `Page ${page} • ${resultCountLabel}`;
+=======
+  const currentResultsLabel = loading
+    ? 'Loading…'
+    : emptyState
+      ? 'No results'
+      : `${entries.length} result${entries.length === 1 ? '' : 's'}`;
+>>>>>>> 73b81d5f1ff6ebe5faee8d960a30e4624410631b
 
   return (
     <section className="section section--activity">
@@ -430,7 +438,11 @@ export function ActivityFeed() {
       <footer className="activity-footer">
         <div>
           <span className="activity-page">Page {page}</span>
+<<<<<<< HEAD
           <span className="activity-count">{footerSummary}</span>
+=======
+          <span className="activity-count">{currentResultsLabel}</span>
+>>>>>>> 73b81d5f1ff6ebe5faee8d960a30e4624410631b
         </div>
         <div className="activity-pagination">
           <button
